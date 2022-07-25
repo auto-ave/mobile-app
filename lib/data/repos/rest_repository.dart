@@ -1,4 +1,5 @@
 import 'package:themotorwash/data/api/api_methods.dart';
+import 'package:themotorwash/data/models/direct_booking_response.dart';
 import 'package:themotorwash/data/models/multi_day_slot_detail.dart';
 import 'package:themotorwash/data/models/booking_detail.dart';
 import 'package:themotorwash/data/models/booking_list_model.dart';
@@ -308,5 +309,17 @@ class RestRepository implements Repository {
     final List<StoreListModel> storeList =
         stores.map((e) => StoreListModel.fromEntity(e)).toList();
     return storeList;
+  }
+
+  @override
+  Future<DirectBookingResponse> directBookSlot(
+      {required String date,
+      required int? bay,
+      required String? slotStart,
+      required String? slotEnd}) async {
+    DirectBookingResponseEntity directBookingResponse =
+        await _apiMethodsImp.directBookSlot(
+            date: date, bay: bay, slotStart: slotStart, slotEnd: slotEnd);
+    return DirectBookingResponse.fromEntity(directBookingResponse);
   }
 }

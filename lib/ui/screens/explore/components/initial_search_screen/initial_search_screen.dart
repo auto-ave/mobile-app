@@ -27,6 +27,13 @@ class _InitialSearchScreenState extends State<InitialSearchScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _searchServicesBloc.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [

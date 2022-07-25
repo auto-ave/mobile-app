@@ -13,38 +13,49 @@ class GlobalVehicleTypeBloc
   final LocalDataService _localDataService;
   GlobalVehicleTypeBloc({required LocalDataService localDataService})
       : _localDataService = localDataService,
-        super(GlobalVehicleTypeInitial());
-
-  @override
-  Stream<GlobalVehicleTypeState> mapEventToState(
-    GlobalVehicleTypeEvent event,
-  ) async* {
-    if (event is CheckSavedVehicleType) {
-      yield* _mapCheckSelectedVehicleTypeToState();
-    } else if (event is YieldSelectedVehicleType) {
-      yield* _mapYieldSelectedVehicleTypeToState(
-          vehicleTypeModel: event.vehicleType);
-    }
+        super(GlobalVehicleTypeInitial()) {
+    on<GlobalVehicleTypeEvent>((event, emit) async {
+      if (event is CheckSavedVehicleType) {
+        await _mapCheckSelectedVehicleTypeToState(emit: emit);
+      } else if (event is YieldSelectedVehicleType) {
+        await _mapYieldSelectedVehicleTypeToState(
+            vehicleTypeModel: event.vehicleType, emit: emit);
+      }
+    });
   }
 
-  Stream<GlobalVehicleTypeState> _mapCheckSelectedVehicleTypeToState() async* {
+  // @override
+  // Stream<GlobalVehicleTypeState> mapEventToState(
+  //   GlobalVehicleTypeEvent event,
+  // ) async* {
+  // if (event is CheckSavedVehicleType) {
+  //   yield* _mapCheckSelectedVehicleTypeToState();
+  // } else if (event is YieldSelectedVehicleType) {
+  //   yield* _mapYieldSelectedVehicleTypeToState(
+  //       vehicleTypeModel: event.vehicleType);
+  // }
+  // }
+
+  FutureOr<void> _mapCheckSelectedVehicleTypeToState(
+      {required Emitter<GlobalVehicleTypeState> emit}) async {
     try {
-      yield CheckingSavedVehicleType();
+      emit(CheckingSavedVehicleType());
 
       VehicleModel? vehicleTypeSelected =
           await _localDataService.getSavedVehicleType();
       if (vehicleTypeSelected == null) {
-        yield VehicleTypeNotSelected();
+        emit(VehicleTypeNotSelected());
       } else {
-        yield GlobalVehicleTypeSelected(vehicleTypeModel: vehicleTypeSelected);
+        emit(GlobalVehicleTypeSelected(vehicleTypeModel: vehicleTypeSelected));
       }
     } catch (e) {
-      yield GlobalVehicleTypeError(message: e.toString());
+      emit(GlobalVehicleTypeError(message: e.toString()));
     }
   }
 
-  Stream<GlobalVehicleTypeState> _mapYieldSelectedVehicleTypeToState(
-      {required VehicleModel vehicleTypeModel}) async* {
-    yield GlobalVehicleTypeSelected(vehicleTypeModel: vehicleTypeModel);
+  FutureOr<void> _mapYieldSelectedVehicleTypeToState(
+      {required VehicleModel vehicleTypeModel,
+      required Emitter<GlobalVehicleTypeState> emit}) async {
+    emit(GlobalVehicleTypeSelected(vehicleTypeModel: vehicleTypeModel));
   }
 }

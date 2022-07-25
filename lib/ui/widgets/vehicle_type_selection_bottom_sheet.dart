@@ -53,6 +53,14 @@ class _VehicleTypeSelectionBottomSheetState
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _vehicleTypeFunctionsBloc.close();
+    _vehicleTypeListBloc.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     print(MediaQuery.of(context).padding.top);
     return WillPopScope(

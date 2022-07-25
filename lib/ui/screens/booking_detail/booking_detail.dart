@@ -53,6 +53,13 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     _bookingSummaryBloc.add(GetBookingSummary(bookingId: widget.bookingId));
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _bookingSummaryBloc.close();
+  }
+
   Review? _review;
 
   @override

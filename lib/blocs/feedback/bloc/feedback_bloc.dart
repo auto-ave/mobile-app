@@ -11,29 +11,40 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   final Repository _repository;
   FeedbackBloc({required Repository repository})
       : _repository = repository,
-        super(FeedbackInitial());
-
-  @override
-  Stream<FeedbackState> mapEventToState(
-    FeedbackEvent event,
-  ) async* {
-    if (event is SendFeedback) {
-      yield* _mapSendFeedbackToState(
-          email: event.email, message: event.message, phoneNumber: event.phone);
-    }
+        super(FeedbackInitial()) {
+    on<FeedbackEvent>((event, emit) async {
+      if (event is SendFeedback) {
+        await _mapSendFeedbackToState(
+            email: event.email,
+            message: event.message,
+            phoneNumber: event.phone,
+            emit: emit);
+      }
+    });
   }
 
-  Stream<FeedbackState> _mapSendFeedbackToState(
+  // @override
+  // Stream<FeedbackState> mapEventToState(
+  //   FeedbackEvent event,
+  // ) async* {
+  // if (event is SendFeedback) {
+  //   yield* _mapSendFeedbackToState(
+  //       email: event.email, message: event.message, phoneNumber: event.phone);
+  // }
+  // }
+
+  FutureOr<void> _mapSendFeedbackToState(
       {required String phoneNumber,
       required String email,
-      required String message}) async* {
+      required String message,
+      required Emitter<FeedbackState> emit}) async {
     try {
-      yield FeedbackLoading();
+      emit(FeedbackLoading());
       await _repository.sendFeedback(
           email: email, phoneNumber: phoneNumber, message: message);
-      yield FeedbackSent();
+      emit(FeedbackSent());
     } catch (e) {
-      yield FeedbackError(message: e.toString());
+      emit(FeedbackError(message: e.toString()));
     }
   }
 }

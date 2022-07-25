@@ -13,38 +13,49 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   ProfileBloc({required Repository repository})
       : _repository = repository,
-        super(ProfileInitial());
-
-  @override
-  Stream<ProfileState> mapEventToState(
-    ProfileEvent event,
-  ) async* {
-    if (event is GetProfile) {
-      yield* _mapGetProfileToState();
-    } else if (event is UpdateProfile) {
-      yield* _mapUpdateProfileToState(entity: event.userProfileEntity);
-    }
+        super(ProfileInitial()) {
+    on<ProfileEvent>((event, emit) async {
+      if (event is GetProfile) {
+        await _mapGetProfileToState(emit: emit);
+      } else if (event is UpdateProfile) {
+        await _mapUpdateProfileToState(
+            entity: event.userProfileEntity, emit: emit);
+      }
+    });
   }
 
-  Stream<ProfileState> _mapGetProfileToState() async* {
+  // @override
+  // Stream<ProfileState> mapEventToState(
+  //   ProfileEvent event,
+  // ) async* {
+  // if (event is GetProfile) {
+  //   yield* _mapGetProfileToState();
+  // } else if (event is UpdateProfile) {
+  //   yield* _mapUpdateProfileToState(entity: event.userProfileEntity);
+  // }
+  // }
+
+  FutureOr<void> _mapGetProfileToState(
+      {required Emitter<ProfileState> emit}) async {
     try {
-      yield LoadingProfile();
+      emit(LoadingProfile());
       UserProfile userProfile = await _repository.getAccountDetails();
-      yield ProfileLoaded(userProfile: userProfile);
+      emit(ProfileLoaded(userProfile: userProfile));
     } catch (e) {
-      yield FailedToLoadProfile(message: e.toString());
+      emit(FailedToLoadProfile(message: e.toString()));
     }
   }
 
-  Stream<ProfileState> _mapUpdateProfileToState(
-      {required UserProfileEntity entity}) async* {
+  FutureOr<void> _mapUpdateProfileToState(
+      {required UserProfileEntity entity,
+      required Emitter<ProfileState> emit}) async {
     try {
-      yield UpdatingProfile();
+      emit(UpdatingProfile());
       UserProfile userProfile =
           await _repository.updateAccountDetails(userProfileEntity: entity);
-      yield ProfileUpdated(userProfile: userProfile);
+      emit(ProfileUpdated(userProfile: userProfile));
     } catch (e) {
-      yield FailedToLoadProfile(message: e.toString());
+      emit(FailedToLoadProfile(message: e.toString()));
     }
   }
 }

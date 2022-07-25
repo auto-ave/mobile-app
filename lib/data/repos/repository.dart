@@ -1,3 +1,4 @@
+import 'package:themotorwash/data/models/direct_booking_response.dart';
 import 'package:themotorwash/data/models/multi_day_slot_detail.dart';
 import 'package:themotorwash/data/models/booking_detail.dart';
 import 'package:themotorwash/data/models/booking_list_model.dart';
@@ -86,4 +87,9 @@ abstract class Repository {
   Future<List<StoreListModel>> getFeaturedStores({
     required LocationModel locationModel,
   });
+  Future<DirectBookingResponse> directBookSlot(
+      {required String date,
+      required int? bay,
+      required String? slotStart,
+      required String? slotEnd});
 }

@@ -52,7 +52,7 @@ class PaymentChoiceScreen extends StatefulWidget {
 class _PaymentChoiceScreenState extends State<PaymentChoiceScreen> {
   int currentSelectedIndex = 1;
   late final PaymentChoiceBloc _paymentChoiceBloc;
-  late RazorpayPaymentBloc _paytmPaymentBloc;
+  late RazorpayPaymentBloc _razorPaymentBloc;
   late SimpleFontelicoProgressDialog _dialog;
   @override
   void initState() {
@@ -61,12 +61,20 @@ class _PaymentChoiceScreenState extends State<PaymentChoiceScreen> {
     super.initState();
     _dialog = SimpleFontelicoProgressDialog(
         context: context, barrierDimisable: false);
-    _paytmPaymentBloc = RazorpayPaymentBloc(
+    _razorPaymentBloc = RazorpayPaymentBloc(
         paymentRepository: RepositoryProvider.of<PaymentRepository>(context),
         razorpayInstance: Razorpay());
     _paymentChoiceBloc = PaymentChoiceBloc(
         repository: RepositoryProvider.of<Repository>(context));
     _paymentChoiceBloc.add(GetPaymentChoices());
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _paymentChoiceBloc.close();
+    _razorPaymentBloc.close();
   }
 
   void showDialog(String message) async {
@@ -90,7 +98,7 @@ class _PaymentChoiceScreenState extends State<PaymentChoiceScreen> {
           title: 'Continue',
           onTap: () {
             // Logger().d(widget.multiDaySlot!.startTime);
-            _paytmPaymentBloc.add(
+            _razorPaymentBloc.add(
               InitiateRazorpayPayment(
                 slotStart: widget.slot != null
                     ? widget.slot!.startString!
@@ -105,7 +113,7 @@ class _PaymentChoiceScreenState extends State<PaymentChoiceScreen> {
           },
         ),
         body: BlocListener<RazorpayPaymentBloc, RazorpayPaymentState>(
-          bloc: _paytmPaymentBloc,
+          bloc: _razorPaymentBloc,
           listener: (context, state) {
             if (state is InitiatingRazorpayPayment) {
               showDialog('Initiating your transaction...Please wait');
@@ -120,14 +128,14 @@ class _PaymentChoiceScreenState extends State<PaymentChoiceScreen> {
               _dialog.hide();
             }
             if (state is RazorpayPaymentSuccess) {
-              _paytmPaymentBloc.add(CheckRazorpayPaymentStatus(
+              _razorPaymentBloc.add(CheckRazorpayPaymentStatus(
                   paymentResponseModel: state.successResponse,
                   bookingId: state.bookingId,
                   isFailure: false));
             }
             if (state is RazorpayPaymentFailure) {
               print('State is RazorpayPaymentFailure');
-              _paytmPaymentBloc.add(CheckRazorpayPaymentStatus(
+              _razorPaymentBloc.add(CheckRazorpayPaymentStatus(
                   paymentResponseModel: RazorpayPaymentResponse(
                       razorpayOrderId: '',
                       razorpayPaymentId: '',
@@ -296,7 +304,7 @@ class _PaymentChoiceScreenState extends State<PaymentChoiceScreen> {
 
   void startRazorpayTransaction(
       {required InitiateRazorpayPaymentModel initiatedPayment}) {
-    _paytmPaymentBloc
+    _razorPaymentBloc
         .add(StartRazorpayTransaction(initiatedPayment: initiatedPayment));
   }
 }

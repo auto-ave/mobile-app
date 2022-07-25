@@ -14,65 +14,85 @@ class PaytmPaymentBloc extends Bloc<PaytmPaymentEvent, PaytmPaymentState> {
   final PaymentRepository _paymentRepository;
   PaytmPaymentBloc({required PaymentRepository paymentRepository})
       : _paymentRepository = paymentRepository,
-        super(PaytmPaymentInitial());
-
-  @override
-  Stream<PaytmPaymentState> mapEventToState(
-    PaytmPaymentEvent event,
-  ) async* {
-    if (event is InitiatePaytmPaymentApi) {
-      yield* _mapInitiatePaytmPaymentApiToState(
-          date: event.date,
-          bay: event.bay,
-          slotStart: event.slotStart,
-          slotEnd: event.slotEnd);
-    } else if (event is CheckPaytmPaymentStatus) {
-      yield* _mapCheckPaytmPaymentStatusToState(
-          paymentResponseModel: event.paymentResponseModel);
-    } else if (event is StartPaytmTransaction) {
-      yield* _mapStartPaytmTransactionToState(
-          initiatedPayment: event.initiatedPayment);
-    }
+        super(PaytmPaymentInitial()) {
+    on<PaytmPaymentEvent>((event, emit) async {
+      if (event is InitiatePaytmPaymentApi) {
+        await _mapInitiatePaytmPaymentApiToState(
+            date: event.date,
+            bay: event.bay,
+            slotStart: event.slotStart,
+            slotEnd: event.slotEnd,
+            emit: emit);
+      } else if (event is CheckPaytmPaymentStatus) {
+        await _mapCheckPaytmPaymentStatusToState(
+            paymentResponseModel: event.paymentResponseModel, emit: emit);
+      } else if (event is StartPaytmTransaction) {
+        await _mapStartPaytmTransactionToState(
+            initiatedPayment: event.initiatedPayment, emit: emit);
+      }
+    });
   }
 
-  Stream<PaytmPaymentState> _mapInitiatePaytmPaymentApiToState(
+  // @override
+  // Stream<PaytmPaymentState> mapEventToState(
+  //   PaytmPaymentEvent event,
+  // ) async* {
+  // if (event is InitiatePaytmPaymentApi) {
+  //   yield* _mapInitiatePaytmPaymentApiToState(
+  //       date: event.date,
+  //       bay: event.bay,
+  //       slotStart: event.slotStart,
+  //       slotEnd: event.slotEnd);
+  // } else if (event is CheckPaytmPaymentStatus) {
+  //   yield* _mapCheckPaytmPaymentStatusToState(
+  //       paymentResponseModel: event.paymentResponseModel);
+  // } else if (event is StartPaytmTransaction) {
+  //   yield* _mapStartPaytmTransactionToState(
+  //       initiatedPayment: event.initiatedPayment);
+  // }
+  // }
+
+  FutureOr<void> _mapInitiatePaytmPaymentApiToState(
       {required String date,
       required int? bay,
       required String slotStart,
-      required String? slotEnd}) async* {
+      required String? slotEnd,
+      required Emitter<PaytmPaymentState> emit}) async {
     try {
-      yield InitiatingPaytmPayment();
+      emit(InitiatingPaytmPayment());
       InitiatePaytmPaymentModel initiatedPayment =
           await _paymentRepository.initiatePaytmPayment(
               date: date, bay: bay, slotStart: slotStart, slotEnd: slotEnd);
-      yield PaytmPaymentInitiated(initiatedPayment: initiatedPayment);
+      emit(PaytmPaymentInitiated(initiatedPayment: initiatedPayment));
     } catch (e) {
-      yield FailedToInitiatePaytmPayment(message: e.toString());
+      emit(FailedToInitiatePaytmPayment(message: e.toString()));
     }
   }
 
-  Stream<PaytmPaymentState> _mapStartPaytmTransactionToState(
-      {required InitiatePaytmPaymentModel initiatedPayment}) async* {
+  FutureOr<void> _mapStartPaytmTransactionToState(
+      {required InitiatePaytmPaymentModel initiatedPayment,
+      required Emitter<PaytmPaymentState> emit}) async {
     try {
       PaytmPaymentResponseModel paymentResponseModel = await _paymentRepository
           .startPaytmTransaction(initiatedPayment: initiatedPayment);
-      yield PaytmPaymentSuccessful(paymentResponseModel: paymentResponseModel);
+      emit(PaytmPaymentSuccessful(paymentResponseModel: paymentResponseModel));
     } on PlatformException catch (e) {
       print("caught exception");
-      yield PaytmPaymentFailed(message: e.toString(), e: e);
+      emit(PaytmPaymentFailed(message: e.toString(), e: e));
     }
   }
 
-  Stream<PaytmPaymentState> _mapCheckPaytmPaymentStatusToState(
-      {required PaytmPaymentResponseModel paymentResponseModel}) async* {
+  FutureOr<void> _mapCheckPaytmPaymentStatusToState(
+      {required PaytmPaymentResponseModel paymentResponseModel,
+      required Emitter<PaytmPaymentState> emit}) async {
     try {
       print(paymentResponseModel.toString());
       PaytmPaymentResponseModel paymentResponse = await _paymentRepository
           .checkPaytmPaymentStatus(paymentResponseModel: paymentResponseModel);
 
-      yield CheckedPaytmPaymentStatus(paymentResponseModel: paymentResponse);
+      emit(CheckedPaytmPaymentStatus(paymentResponseModel: paymentResponse));
     } catch (e) {
-      yield FailedToCheckPaytmPaymentStatus(message: e.toString());
+      emit(FailedToCheckPaytmPaymentStatus(message: e.toString()));
     }
   }
 }

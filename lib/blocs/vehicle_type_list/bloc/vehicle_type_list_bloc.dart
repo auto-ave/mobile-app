@@ -14,23 +14,34 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
   final Repository _repository;
   VehicleListBloc({required Repository repository})
       : _repository = repository,
-        super(VehicleListInitial());
-
-  @override
-  Stream<VehicleListState> mapEventToState(
-    VehicleListEvent event,
-  ) async* {
-    // if (event is LoadVehicleTypeList) {
-    //   yield* _mapLoadVehicleTypeListToState();
-    // } else
-    if (event is LoadVehicleWheelList) {
-      yield* _mapLoadVehicleWheelListToState();
-    } else if (event is LoadVehicleBrandList) {
-      yield* _mapLoadVehicleBrandListToState(wheelCode: event.wheelCode);
-    } else if (event is LoadVehicleModelList) {
-      yield* _mapLoadVehicleModelListToState(brand: event.brand);
-    }
+        super(VehicleListInitial()) {
+    on<VehicleListEvent>((event, emit) async {
+      if (event is LoadVehicleWheelList) {
+        await _mapLoadVehicleWheelListToState(emit: emit);
+      } else if (event is LoadVehicleBrandList) {
+        await _mapLoadVehicleBrandListToState(
+            wheelCode: event.wheelCode, emit: emit);
+      } else if (event is LoadVehicleModelList) {
+        await _mapLoadVehicleModelListToState(brand: event.brand, emit: emit);
+      }
+    });
   }
+
+  // @override
+  // Stream<VehicleListState> mapEventToState(
+  //   VehicleListEvent event,
+  // ) async* {
+  //   // if (event is LoadVehicleTypeList) {
+  //   //   yield* _mapLoadVehicleTypeListToState();
+  //   // } else
+  // if (event is LoadVehicleWheelList) {
+  //   yield* _mapLoadVehicleWheelListToState();
+  // } else if (event is LoadVehicleBrandList) {
+  //   yield* _mapLoadVehicleBrandListToState(wheelCode: event.wheelCode);
+  // } else if (event is LoadVehicleModelList) {
+  //   yield* _mapLoadVehicleModelListToState(brand: event.brand);
+  // }
+  // }
 
   // Stream<VehicleTypeListState> _mapLoadVehicleTypeListToState() async* {
   //   try {
@@ -53,36 +64,38 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
   //   }
   // }
 
-  Stream<VehicleListState> _mapLoadVehicleWheelListToState() async* {
+  FutureOr<void> _mapLoadVehicleWheelListToState(
+      {required Emitter<VehicleListState> emit}) async {
     try {
-      yield VehicleListLoading();
+      emit(VehicleListLoading());
       var vehicleWheels = await _repository.getVehicleWheelList();
-      yield VehicleWheelListLoaded(wheels: vehicleWheels);
+      emit(VehicleWheelListLoaded(wheels: vehicleWheels));
     } catch (e) {
-      yield VehicleListError(message: e.toString());
+      emit(VehicleListError(message: e.toString()));
     }
   }
 
-  Stream<VehicleListState> _mapLoadVehicleBrandListToState(
-      {required String wheelCode}) async* {
+  FutureOr<void> _mapLoadVehicleBrandListToState(
+      {required String wheelCode,
+      required Emitter<VehicleListState> emit}) async {
     try {
-      yield VehicleListLoading();
+      emit(VehicleListLoading());
       var vehicleBrands =
           await _repository.getVehicleBrandlList(wheelCode: wheelCode);
-      yield VehicleBrandListLoaded(brands: vehicleBrands);
+      emit(VehicleBrandListLoaded(brands: vehicleBrands));
     } catch (e) {
-      yield VehicleListError(message: e.toString());
+      emit(VehicleListError(message: e.toString()));
     }
   }
 
-  Stream<VehicleListState> _mapLoadVehicleModelListToState(
-      {required String brand}) async* {
+  FutureOr<void> _mapLoadVehicleModelListToState(
+      {required String brand, required Emitter<VehicleListState> emit}) async {
     try {
-      yield VehicleListLoading();
+      emit(VehicleListLoading());
       var vehicleModels = await _repository.getVehicleModelList(brand: brand);
-      yield VehicleModelListLoaded(vehicles: vehicleModels);
+      emit(VehicleModelListLoaded(vehicles: vehicleModels));
     } catch (e) {
-      yield VehicleListError(message: e.toString());
+      emit(VehicleListError(message: e.toString()));
     }
   }
 }

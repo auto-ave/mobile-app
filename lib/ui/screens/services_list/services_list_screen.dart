@@ -34,6 +34,13 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _privateSearchServicesBloc.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(

@@ -19,6 +19,8 @@ import 'package:themotorwash/navigation/arguments.dart';
 import 'package:themotorwash/theme_constants.dart';
 import 'package:themotorwash/ui/screens/booking_detail/booking_detail.dart';
 import 'package:themotorwash/ui/screens/booking_detail/components/store_detail_tile.dart';
+import 'package:themotorwash/ui/screens/booking_summary/components/payable_amount_widget.dart';
+import 'package:themotorwash/ui/screens/booking_summary/components/reaching_time_widget.dart';
 import 'package:themotorwash/ui/screens/explore/explore_screen.dart';
 import 'package:themotorwash/ui/screens/your_bookings/your_bookings_screen.dart';
 import 'package:themotorwash/ui/widgets/badge.dart';
@@ -76,6 +78,13 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _bookingSummaryBloc.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     DateFormat formatter = DateFormat(DateFormat.YEAR_ABBR_MONTH_DAY);
 
@@ -113,7 +122,16 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizeConfig.kverticalMargin16,
+                      SizeConfig.kverticalMargin8,
+                      PayableAmountWidget(
+                          amount: bookingDetail.remainingAmount ?? ''),
+                      SizeConfig.kverticalMargin8,
+                      ReachingTimeWidget(
+                          date: DateFormat('d MMMM')
+                              .format(bookingDetail.event!.startDateTime),
+                          time: DateFormat(DateFormat.HOUR24_MINUTE)
+                              .format(bookingDetail.event!.startDateTime)),
+                      SizeConfig.kverticalMargin32,
                       Row(
                         children: <Widget>[
                           Image.asset(widget.isTransactionSuccessful
@@ -443,6 +461,13 @@ class _RateServiceWidgetState extends State<RateServiceWidget> {
     super.initState();
     _reviewBloc =
         ReviewBloc(repository: RepositoryProvider.of<Repository>(context));
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _reviewBloc.close();
   }
 
   double _rating = 0;

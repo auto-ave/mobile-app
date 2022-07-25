@@ -41,10 +41,12 @@ class SlotSelectScreen extends StatelessWidget {
         ? MultiDaySlotSelectScreen(
             cartId: cartId,
             cartTotal: cartTotal,
+            isOldPaymentRoute: false,
           )
         : NormalSlotSelectScreen(
             cartId: cartId,
             cartTotal: cartTotal,
+            isOldPaymentRoute: false,
           );
   }
 }

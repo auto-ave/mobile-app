@@ -30,44 +30,56 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
         _globalAuthBloc = globalAuthBloc,
         _fcmInstance = fcmInstance,
         _localDataService = localDataService,
-        super(PhoneAuthUninitialized());
-
-  @override
-  Stream<PhoneAuthState> mapEventToState(
-    PhoneAuthEvent event,
-  ) async* {
-    if (event is SendOTP) {
-      yield* _mapSendOTPtoState(
-        phoneNumber: event.phoneNumber,
-      );
-    } else if (event is CheckOTP) {
-      yield* _mapCheckOTPtoState(
-          otp: event.otp, phoneNumber: event.phoneNumber);
-    } else if (event is LogOut) {
-      yield* _mapLogOutToState();
-    }
+        super(PhoneAuthUninitialized()) {
+    on<PhoneAuthEvent>((event, emit) async {
+      if (event is SendOTP) {
+        await _mapSendOTPtoState(phoneNumber: event.phoneNumber, emit: emit);
+      } else if (event is CheckOTP) {
+        await _mapCheckOTPtoState(
+            otp: event.otp, phoneNumber: event.phoneNumber, emit: emit);
+      } else if (event is LogOut) {
+        await _mapLogOutToState(emit: emit);
+      }
+    });
   }
 
-  Stream<PhoneAuthState> _mapSendOTPtoState(
-      {required String phoneNumber}) async* {
+  // @override
+  // Stream<PhoneAuthState> mapEventToState(
+  //   PhoneAuthEvent event,
+  // ) async* {
+  // if (event is SendOTP) {
+  //   yield* _mapSendOTPtoState(
+  //     phoneNumber: event.phoneNumber,
+  //   );
+  // } else if (event is CheckOTP) {
+  //   yield* _mapCheckOTPtoState(
+  //       otp: event.otp, phoneNumber: event.phoneNumber);
+  // } else if (event is LogOut) {
+  //   yield* _mapLogOutToState();
+  // }
+  // }
+
+  FutureOr<void> _mapSendOTPtoState(
+      {required String phoneNumber,
+      required Emitter<PhoneAuthState> emit}) async {
     try {
-      yield SendingOTP();
+      emit(SendingOTP());
       SendOTPResponse otpSent =
           await _repository.sendOTP(phoneNumber: phoneNumber);
-      yield otpSent.isOTPSent
-          ? OTPSent()
-          : FailedToSendOTP(message: otpSent.message!);
+      otpSent.isOTPSent
+          ? emit(OTPSent())
+          : emit(FailedToSendOTP(message: otpSent.message!));
     } catch (e) {
-      yield FailedToSendOTP(message: e.toString());
+      emit(FailedToSendOTP(message: e.toString()));
     }
   }
 
-  Stream<PhoneAuthState> _mapCheckOTPtoState({
-    required String otp,
-    required String phoneNumber,
-  }) async* {
+  FutureOr<void> _mapCheckOTPtoState(
+      {required String otp,
+      required String phoneNumber,
+      required Emitter<PhoneAuthState> emit}) async {
     try {
-      yield CheckingOTP();
+      emit(CheckingOTP());
       print('checking otp');
       String? token = await _fcmInstance.getToken();
       //TODO
@@ -77,9 +89,9 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
 
       await _localDataService.storeAuthToken(tokens);
 
-      yield tokens.authenticated
-          ? OTPCheckedPassed(tokens: tokens)
-          : OTPCheckFailed(message: 'Wrong OTP entered');
+      tokens.authenticated
+          ? emit(OTPCheckedPassed(tokens: tokens))
+          : emit(OTPCheckFailed(message: 'Wrong OTP entered'));
 
       if (tokens.authenticated) {
         try {
@@ -95,11 +107,12 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
         _globalAuthBloc.add(YieldAuthenticatedState(tokens: tokens));
       }
     } catch (e) {
-      yield OTPCheckFailed(message: e.toString());
+      emit(OTPCheckFailed(message: e.toString()));
     }
   }
 
-  Stream<PhoneAuthState> _mapLogOutToState() async* {
+  FutureOr<void> _mapLogOutToState(
+      {required Emitter<PhoneAuthState> emit}) async {
     try {
       String? token = await _fcmInstance.getToken();
       print('FCM TOKEN' + token.toString());

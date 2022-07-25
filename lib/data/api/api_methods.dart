@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:paytm_allinonesdk/paytm_allinonesdk.dart';
 import 'package:themotorwash/data/models/auth_tokens.dart';
+import 'package:themotorwash/data/models/direct_booking_response.dart';
 import 'package:themotorwash/data/models/initiate_razorpay_payment.dart';
 import 'package:themotorwash/data/models/location_model.dart';
 import 'package:themotorwash/data/models/multi_day_slot_detail.dart';
@@ -132,4 +133,9 @@ abstract class ApiMethods {
   Future<List<StoreListEntity>> getFeaturedStores({
     required String city,
   });
+  Future<DirectBookingResponseEntity> directBookSlot(
+      {required String date,
+      required int? bay,
+      required String? slotStart,
+      required String? slotEnd});
 }

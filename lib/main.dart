@@ -92,23 +92,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // try {
-  //   FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  //   NotificationSettings settings = await messaging.requestPermission(
-  //     alert: true,
-  //     announcement: false,
-  //     badge: true,
-  //     carPlay: false,
-  //     criticalAlert: false,
-  //     provisional: false,
-  //     sound: true,
-  //   );
-  // } catch (e) {
-  //   print(e.toString() + "permission noti");
-  // }
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   } on Exception catch (e) {
     print("helllo" + e.toString());
   }
@@ -116,7 +102,6 @@ void main() async {
   try {
     initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
   } on Exception catch (e) {
-    // TODO
     print(e.toString() + " Dynamic Link ");
   }
   try {
