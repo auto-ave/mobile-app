@@ -51,6 +51,7 @@ app.*.map.json
 
 # Ignore Android keys
 /android/app/google-services.json
+/app/google-services.json
 upload-keystore.jks
 key.properties
 service_account_key.json
