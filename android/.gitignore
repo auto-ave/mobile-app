@@ -16,3 +16,4 @@ upload-keystore.jks
 key.properties
 service_account_key.json
 android_keys.zip
+android_keys.zip.gpg
