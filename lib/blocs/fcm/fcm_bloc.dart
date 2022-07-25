@@ -18,23 +18,34 @@ class FcmBloc extends Bloc<FcmEvent, FcmState> {
       required AuthRepository authRepository})
       : _fcmInstance = fcmInstance,
         _authRepository = authRepository,
-        super(FcmInitial());
-
-  @override
-  Stream<FcmState> mapEventToState(
-    FcmEvent event,
-  ) async* {
-    // TODO: implement mapEventToState
-    if (event is UpdateDeviceToken) {
-      yield* _mapUpdateDeviceTokenToState();
-    } else if (event is RegisterTopics) {
-      yield* _mapRegisterTopicsToState(event.topics);
-    } else if (event is SubscribeToTopicsNewLogin) {
-      yield* _mapSubscribeToTopicsNewLoginToState();
-    }
+        super(FcmInitial()) {
+    on<FcmEvent>((event, emit) async {
+      if (event is UpdateDeviceToken) {
+        await _mapUpdateDeviceTokenToState(emit: emit);
+      } else if (event is RegisterTopics) {
+        await _mapRegisterTopicsToState(topics: event.topics, emit: emit);
+      } else if (event is SubscribeToTopicsNewLogin) {
+        await _mapSubscribeToTopicsNewLoginToState(emit: emit);
+      }
+    });
   }
 
-  Stream<FcmState> _mapUpdateDeviceTokenToState() async* {
+  // @override
+  // Stream<FcmState> mapEventToState(
+  //   FcmEvent event,
+  // ) async* {
+  //   // TODO: implement mapEventToState
+  // if (event is UpdateDeviceToken) {
+  //   yield* _mapUpdateDeviceTokenToState();
+  // } else if (event is RegisterTopics) {
+  //   yield* _mapRegisterTopicsToState(topics:event.topics);
+  // } else if (event is SubscribeToTopicsNewLogin) {
+  //   yield* _mapSubscribeToTopicsNewLoginToState();
+  // }
+  // }
+
+  FutureOr<void> _mapUpdateDeviceTokenToState(
+      {required Emitter<FcmState> emit}) async {
     try {
       await _fcmInstance.deleteToken();
       String? token = await _fcmInstance.getToken();
@@ -46,7 +57,8 @@ class FcmBloc extends Bloc<FcmEvent, FcmState> {
     }
   }
 
-  Stream<FcmState> _mapRegisterTopicsToState(List<String> topics) async* {
+  FutureOr<void> _mapRegisterTopicsToState(
+      {required List<String> topics, required Emitter<FcmState> emit}) async {
     try {
       await _authRepository.subcribeFcmTopics(topics: topics);
     } catch (e) {
@@ -54,7 +66,8 @@ class FcmBloc extends Bloc<FcmEvent, FcmState> {
     }
   }
 
-  Stream<FcmState> _mapSubscribeToTopicsNewLoginToState() async* {
+  FutureOr<void> _mapSubscribeToTopicsNewLoginToState(
+      {required Emitter<FcmState> emit}) async {
     try {
       final List<FcmTopic> registeredTopics =
           await _authRepository.getFcmTopics();

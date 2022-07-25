@@ -40,6 +40,14 @@ class _CancelOrderScreenState extends State<CancelOrderScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _cancelBookingDataBloc.close();
+    _cancelBookingRequestBloc.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     String selectedReason = "";
     return WillPopScope(

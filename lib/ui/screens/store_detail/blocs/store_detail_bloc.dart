@@ -13,25 +13,33 @@ class StoreDetailBloc extends Bloc<StoreDetailEvent, StoreDetailState> {
   final Repository _repository;
   StoreDetailBloc({required Repository repository})
       : _repository = repository,
-        super(StoreDetailInitial());
-
-  @override
-  Stream<StoreDetailState> mapEventToState(
-    StoreDetailEvent event,
-  ) async* {
-    if (event is LoadStoreDetail) {
-      yield* _mapGetStoreDetailPressedToState(event.storeSlug);
-    }
+        super(StoreDetailInitial()) {
+    on<StoreDetailEvent>((event, emit) async {
+      if (event is LoadStoreDetail) {
+        await _mapGetStoreDetailPressedToState(
+            storeSlug: event.storeSlug, emit: emit);
+      }
+    });
   }
 
-  Stream<StoreDetailState> _mapGetStoreDetailPressedToState(
-      String storeSlug) async* {
+  // @override
+  // Stream<StoreDetailState> mapEventToState(
+  //   StoreDetailEvent event,
+  // ) async* {
+  //   if (event is LoadStoreDetail) {
+  //     yield* _mapGetStoreDetailPressedToState(event.storeSlug);
+  //   }
+  // }
+
+  FutureOr<void> _mapGetStoreDetailPressedToState(
+      {required String storeSlug,
+      required Emitter<StoreDetailState> emit}) async {
     try {
-      yield StoreDetailLoading();
+      emit(StoreDetailLoading());
       Store store = await _repository.getStoreDetailBySlug(slug: storeSlug);
-      yield StoreDetailLoaded(store: store);
+      emit(StoreDetailLoaded(store: store));
     } catch (e) {
-      yield StoreDetailError(message: e.toString());
+      emit(StoreDetailError(message: e.toString()));
     }
   }
 }

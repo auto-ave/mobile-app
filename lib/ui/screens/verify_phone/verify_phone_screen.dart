@@ -60,6 +60,7 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: BlocListener<GlobalAuthBloc, GlobalAuthState>(
             listener: (context, state) {
+              // autoaveLog('')
               if (state is Authenticated) {
                 ScaffoldMessenger.of(context).removeCurrentSnackBar();
                 Navigator.pushNamedAndRemoveUntil(

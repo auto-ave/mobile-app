@@ -18,30 +18,38 @@ class VehicleTypeFunctionsBloc
       required LocalDataService localDataService})
       : _globalVehicleTypeBloc = globalVehicleTypeBloc,
         _localDataService = localDataService,
-        super(VehicleTypeFunctionsInitial());
-
-  @override
-  Stream<VehicleTypeFunctionsState> mapEventToState(
-    VehicleTypeFunctionsEvent event,
-  ) async* {
-    if (event is SelectVehicleType) {
-      yield* _mapSelectVehicleTypeToState(
-          vehicleTypeModel: event.vehicleTypeModel);
-    }
+        super(VehicleTypeFunctionsInitial()) {
+    on<VehicleTypeFunctionsEvent>((event, emit) async {
+      if (event is SelectVehicleType) {
+        await _mapSelectVehicleTypeToState(
+            vehicleTypeModel: event.vehicleTypeModel, emit: emit);
+      }
+    });
   }
 
-  Stream<VehicleTypeFunctionsState> _mapSelectVehicleTypeToState(
-      {required VehicleModel vehicleTypeModel}) async* {
+  // @override
+  // Stream<VehicleTypeFunctionsState> mapEventToState(
+  //   VehicleTypeFunctionsEvent event,
+  // ) async* {
+  // if (event is SelectVehicleType) {
+  //   yield* _mapSelectVehicleTypeToState(
+  //       vehicleTypeModel: event.vehicleTypeModel);
+  // }
+  // }
+
+  FutureOr<void> _mapSelectVehicleTypeToState(
+      {required VehicleModel vehicleTypeModel,
+      required Emitter<VehicleTypeFunctionsState> emit}) async {
     try {
-      yield SelectingVehicleType();
+      emit(SelectingVehicleType());
       await _localDataService.saveVehicleType(
           vehicleTypeModel: vehicleTypeModel);
       _globalVehicleTypeBloc
           .add(YieldSelectedVehicleType(vehicleType: vehicleTypeModel));
-      yield VehicleTypeSelectedFunctionsState(
-          vehicleTypeModel: vehicleTypeModel);
+      emit(VehicleTypeSelectedFunctionsState(
+          vehicleTypeModel: vehicleTypeModel));
     } catch (e) {
-      yield FailedToSelectVehicleType(message: e.toString());
+      emit(FailedToSelectVehicleType(message: e.toString()));
     }
   }
 }

@@ -7,6 +7,7 @@ import 'package:themotorwash/data/models/store.dart';
 import 'package:themotorwash/main.dart';
 import 'package:themotorwash/theme_constants.dart';
 import 'package:themotorwash/ui/screens/store_detail/components/pages/overview/components/store_google_map.dart';
+import 'package:themotorwash/ui/screens/store_detail/components/pages/overview/components/store_hamper_offer/store_hamper_offer_widget.dart';
 import 'package:themotorwash/ui/screens/store_detail/components/pages/overview/components/store_heading.dart';
 import 'package:themotorwash/ui/screens/store_detail/components/pages/overview/components/store_info.dart';
 import 'package:themotorwash/ui/widgets/directions_button.dart';
@@ -77,6 +78,10 @@ class _StoreOverviewTabState extends State<StoreOverviewTab>
               serviceStartsAt:
                   widget.store.servicesStart.toString(), //TODO : todo
             )),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            sliver: StoreHamperOfferWidget(),
           ),
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),

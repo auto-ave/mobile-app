@@ -36,13 +36,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   final emailController = TextEditingController();
   final messageController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  late final _feedbackBloc;
+  late final FeedbackBloc _feedbackBloc;
 
   @override
   void initState() {
     super.initState();
     _feedbackBloc =
         FeedbackBloc(repository: RepositoryProvider.of<Repository>(context));
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _feedbackBloc.close();
   }
 
   @override

@@ -268,6 +268,8 @@ BookingStatusTagColors getBookingStatusTagColor(BookingStatus status) {
       return greenShade;
     case BookingStatus.initiated:
       return greenShade;
+    case BookingStatus.successWithoutPayment:
+      return greenShade;
     default:
       return redShade;
   }
@@ -291,6 +293,8 @@ String getBookingStatusTagText(BookingStatus status) {
       return 'SERVICE STARTED';
     case BookingStatus.serviceCompleted:
       return 'COMPLETED';
+    case BookingStatus.successWithoutPayment:
+      return 'BOOKING CONFIRMED';
     case BookingStatus
         .initiated: //TODO: Need to eliminate this status becuase it is of no use to the user
       return 'INITIATED';

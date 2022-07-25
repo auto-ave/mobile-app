@@ -12,44 +12,55 @@ class StoreReviewsBloc extends Bloc<StoreReviewsEvent, StoreReviewsState> {
   final Repository _repository;
   StoreReviewsBloc({required Repository repository})
       : _repository = repository,
-        super(StoreReviewsInitial());
-  @override
-  Stream<StoreReviewsState> mapEventToState(
-    StoreReviewsEvent event,
-  ) async* {
-    if (event is LoadStoreReviews) {
-      yield* _mapLoadStoreReviewsToState(
-          slug: event.slug,
-          offset: event.offset,
-          forLoadMore: event.forLoadMore);
-    }
+        super(StoreReviewsInitial()) {
+    on<StoreReviewsEvent>((event, emit) async {
+      if (event is LoadStoreReviews) {
+        await _mapLoadStoreReviewsToState(
+            slug: event.slug,
+            offset: event.offset,
+            forLoadMore: event.forLoadMore,
+            emit: emit);
+      }
+    });
   }
+  // @override
+  // Stream<StoreReviewsState> mapEventToState(
+  //   StoreReviewsEvent event,
+  // ) async* {
+  // if (event is LoadStoreReviews) {
+  //   yield* _mapLoadStoreReviewsToState(
+  //       slug: event.slug,
+  //       offset: event.offset,
+  //       forLoadMore: event.forLoadMore);
+  // }
+  // }
 
   bool hasReachedMax(StoreReviewsState state) =>
       state is StoreReviewsLoaded && state.hasReachedMax;
 
-  Stream<StoreReviewsState> _mapLoadStoreReviewsToState(
+  FutureOr<void> _mapLoadStoreReviewsToState(
       {required String slug,
       required int offset,
-      required bool forLoadMore}) async* {
+      required bool forLoadMore,
+      required Emitter<StoreReviewsState> emit}) async {
     if (!hasReachedMax(state)) {
       try {
         List<Review> reviews = [];
         if (state is StoreReviewsLoaded && forLoadMore) {
           reviews = (state as StoreReviewsLoaded).reviews;
-          yield MoreStoreReviewsLoading();
+          emit(MoreStoreReviewsLoading());
         } else {
-          yield StoreReviewsLoading();
+          emit(StoreReviewsLoading());
         }
 
         List<Review> moreReviews =
             await _repository.getStoreReviewsBySlug(slug: slug, offset: offset);
-        yield StoreReviewsLoaded(
+        emit(StoreReviewsLoaded(
             reviews: reviews + moreReviews,
             hasReachedMax: moreReviews.length !=
-                10); // Page Limit set in apiconstants is 10. Therefore if services retured are less than 10, then hasReachedMax is true
+                10)); // Page Limit set in apiconstants is 10. Therefore if services retured are less than 10, then hasReachedMax is true
       } catch (e) {
-        yield StoreReviewsError(message: e.toString());
+        emit(StoreReviewsError(message: e.toString()));
       }
     }
   }

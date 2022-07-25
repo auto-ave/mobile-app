@@ -12,42 +12,51 @@ class YourBookingsBloc extends Bloc<YourBookingsEvent, YourBookingsState> {
   Repository _repository;
   YourBookingsBloc({required Repository repository})
       : _repository = repository,
-        super(YourBookingsInitial());
-
-  @override
-  Stream<YourBookingsState> mapEventToState(
-    YourBookingsEvent event,
-  ) async* {
-    if (event is GetYourBookings) {
-      yield* _mapGetYourBookingToState(
-          offset: event.offset, forLoadMore: event.forLoadMore);
-    }
+        super(YourBookingsInitial()) {
+    on<YourBookingsEvent>((event, emit) async {
+      if (event is GetYourBookings) {
+        await _mapGetYourBookingToState(
+            offset: event.offset, forLoadMore: event.forLoadMore, emit: emit);
+      }
+    });
   }
+
+  // @override
+  // Stream<YourBookingsState> mapEventToState(
+  //   YourBookingsEvent event,
+  // ) async* {
+  //   if (event is GetYourBookings) {
+  //     yield* _mapGetYourBookingToState(
+  //         offset: event.offset, forLoadMore: event.forLoadMore);
+  //   }
+  // }
 
   bool hasReachedMax(YourBookingsState state, bool forLoadMore) =>
       state is YourBookingsLoaded && state.hasReachedMax && forLoadMore;
 
-  Stream<YourBookingsState> _mapGetYourBookingToState(
-      {required int offset, required bool forLoadMore}) async* {
+  FutureOr<void> _mapGetYourBookingToState(
+      {required int offset,
+      required bool forLoadMore,
+      required Emitter<YourBookingsState> emit}) async {
     if (!hasReachedMax(state, forLoadMore)) {
       print("hellobook");
       try {
         List<BookingListModel> bookings = [];
         if (state is YourBookingsLoaded && forLoadMore) {
-          yield MoreYourBookingsLoading();
+          emit(MoreYourBookingsLoading());
           bookings = (state as YourBookingsLoaded).bookings;
         } else {
-          yield YourBookingsLoading();
+          emit(YourBookingsLoading());
         }
 
         List<BookingListModel> moreBookings =
             await _repository.getYourBookings(offset: offset);
-        yield YourBookingsLoaded(
+        emit(YourBookingsLoaded(
             bookings: bookings + moreBookings,
             hasReachedMax:
-                moreBookings.length != 10); //page limit in apiconstants is 10
+                moreBookings.length != 10)); //page limit in apiconstants is 10
       } catch (e) {
-        yield YourBookingsError(message: e.toString());
+        emit(YourBookingsError(message: e.toString()));
       }
     }
   }

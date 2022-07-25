@@ -28,6 +28,7 @@ import 'package:themotorwash/data/repos/repository.dart';
 import 'package:themotorwash/main.dart';
 import 'package:themotorwash/navigation/arguments.dart';
 import 'package:themotorwash/theme_constants.dart';
+import 'package:themotorwash/ui/screens/explore/components/explore_hamper/explore_hamper_widget.dart';
 import 'package:themotorwash/ui/screens/explore/components/explore_offers/explore_offers_carousel.dart';
 import 'package:themotorwash/ui/screens/explore/components/explore_picks/explore_picks_widget.dart';
 import 'package:themotorwash/ui/screens/explore/components/explore_services/explore_services_grid.dart';
@@ -147,6 +148,18 @@ class _ExploreScreenState extends State<ExploreScreen>
         }
       });
     }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _storeListBloc.close();
+    _searchServicesBloc.close();
+    _privateSearchServicesBloc.close();
+    _searchStoresBloc.close();
+    _featuredStoresBloc.close();
+    _bannersBloc.close();
   }
 
   @override
@@ -354,6 +367,10 @@ class _ExploreScreenState extends State<ExploreScreen>
           controller: _refreshController,
           onRefresh: _onRefresh,
           child: CustomScrollView(slivers: [
+            ExploreHamperWidget(),
+            SliverToBoxAdapter(
+              child: SizeConfig.kverticalMargin16,
+            ),
             ExploreOffersCarousel(
               bannersBloc: _bannersBloc,
             ),

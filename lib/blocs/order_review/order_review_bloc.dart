@@ -13,25 +13,41 @@ part 'order_review_event.dart';
 part 'order_review_state.dart';
 
 class OrderReviewBloc extends Bloc<OrderReviewEvent, OrderReviewState> {
-  OrderReviewBloc() : super(OrderReviewInitial());
   CartModel? cart;
   Slot? slot;
   MultiDaySlot? multiDaySlot;
-  @override
-  Stream<OrderReviewState> mapEventToState(
-    OrderReviewEvent event,
-  ) async* {
-    if (event is SetCart) {
-      cart = event.cart;
-      //
-    } else if (event is SetSlot) {
-      slot = event.slot;
-      multiDaySlot = event.multiDaySlot;
-      yield LocalOrderRetrieved(
-        slot: slot,
-        cart: cart!,
-        multiDaySlot: multiDaySlot,
-      );
-    }
+  OrderReviewBloc() : super(OrderReviewInitial()) {
+    on<OrderReviewEvent>((event, emit) {
+      if (event is SetCart) {
+        cart = event.cart;
+        //
+      } else if (event is SetSlot) {
+        slot = event.slot;
+        multiDaySlot = event.multiDaySlot;
+        emit(LocalOrderRetrieved(
+          slot: slot,
+          cart: cart!,
+          multiDaySlot: multiDaySlot,
+        ));
+      }
+    });
   }
+
+  // @override
+  // Stream<OrderReviewState> mapEventToState(
+  //   OrderReviewEvent event,
+  // ) async* {
+  // if (event is SetCart) {
+  //   cart = event.cart;
+  //   //
+  // } else if (event is SetSlot) {
+  //   slot = event.slot;
+  //   multiDaySlot = event.multiDaySlot;
+  //   yield LocalOrderRetrieved(
+  //     slot: slot,
+  //     cart: cart!,
+  //     multiDaySlot: multiDaySlot,
+  //   );
+  // }
+  // }
 }

@@ -311,4 +311,9 @@ class ApiConstants {
     var uri = Uri.https(baseUrl, "/store/list/$city/featured/");
     return uri.toString();
   }
+
+  String postDirectBookSlotEndpoint() {
+    var uri = Uri.https(baseUrl, "/payment/completeofferbooking/");
+    return uri.toString();
+  }
 }

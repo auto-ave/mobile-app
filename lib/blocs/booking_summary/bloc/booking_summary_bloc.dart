@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:themotorwash/data/models/booking_detail.dart';
 import 'package:themotorwash/data/repos/repository.dart';
+import 'package:themotorwash/utils/utils.dart';
 
 part 'booking_summary_event.dart';
 part 'booking_summary_state.dart';
@@ -13,26 +14,35 @@ class BookingSummaryBloc
   final Repository _repository;
   BookingSummaryBloc({required Repository repository})
       : _repository = repository,
-        super(BookingSummaryInitial());
-
-  @override
-  Stream<BookingSummaryState> mapEventToState(
-    BookingSummaryEvent event,
-  ) async* {
-    if (event is GetBookingSummary) {
-      yield* _mapGetBookingSummaryTostate(bookingId: event.bookingId);
-    }
+        super(BookingSummaryInitial()) {
+    on<BookingSummaryEvent>((event, emit) async {
+      if (event is GetBookingSummary) {
+        await _mapGetBookingSummaryToState(
+            bookingId: event.bookingId, emit: emit);
+      }
+    });
   }
 
-  Stream<BookingSummaryState> _mapGetBookingSummaryTostate(
-      {required String bookingId}) async* {
+  // @override
+  // Stream<BookingSummaryState> mapEventToState(
+  //   BookingSummaryEvent event,
+  // ) async* {
+  //   if (event is GetBookingSummary) {
+  //     yield* _mapGetBookingSummaryTostate(bookingId: event.bookingId);
+  //   }
+  //
+
+  Future<void> _mapGetBookingSummaryToState(
+      {required String bookingId,
+      required Emitter<BookingSummaryState> emit}) async {
     try {
-      yield BookingSummaryLoading();
+      autoaveLog("This calls this");
+      emit(BookingSummaryLoading());
       BookingDetailModel booking =
           await _repository.getBookingDetail(bookingId: bookingId);
-      yield BookingSummaryLoaded(booking: booking);
+      emit(BookingSummaryLoaded(booking: booking));
     } catch (e) {
-      yield BookingSummaryError(message: e.toString());
+      emit(BookingSummaryError(message: e.toString()));
     }
   }
 }

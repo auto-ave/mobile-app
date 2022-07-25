@@ -19,44 +19,52 @@ class SearchStoresBloc extends Bloc<SearchStoresEvent, SearchStoresState> {
       required GlobalLocationBloc globalLocationBloc})
       : _repository = repository,
         _globalLocationBloc = globalLocationBloc,
-        super(SearchStoresInitial());
+        super(SearchStoresInitial()) {
+    on<SearchStoresEvent>((event, emit) async {
+      if (event is SearchStores) {
+        await _mapSearchStoresToState(
+            query: event.query,
+            offset: event.offset,
+            forLoadMore: event.forLoadMore,
+            emit: emit);
+      }
+    }, transformer: _debounceTransformerSearchStores());
+  }
 
-  @override
-  Stream<Transition<SearchStoresEvent, SearchStoresState>> transformEvents(
-      Stream<SearchStoresEvent> events,
-      TransitionFunction<SearchStoresEvent, SearchStoresState> transitionFn) {
-    return events
+  EventTransformer<SearchStoresEvent> _debounceTransformerSearchStores() {
+    return (events, mapper) => events
         .debounceTime(const Duration(milliseconds: 300))
-        .switchMap(transitionFn);
+        .switchMap(mapper);
   }
 
-  @override
-  Stream<SearchStoresState> mapEventToState(
-    SearchStoresEvent event,
-  ) async* {
-    if (event is SearchStores) {
-      yield* _mapSearchStoresToState(
-          query: event.query,
-          offset: event.offset,
-          forLoadMore: event.forLoadMore);
-    }
-  }
+  // @override
+  // Stream<SearchStoresState> mapEventToState(
+  //   SearchStoresEvent event,
+  // ) async* {
+  // if (event is SearchStores) {
+  //   yield* _mapSearchStoresToState(
+  //       query: event.query,
+  //       offset: event.offset,
+  //       forLoadMore: event.forLoadMore);
+  // }
+  // }
 
   bool hasReachedMax(SearchStoresState state, bool forLoadMore) =>
       state is SearchedStoresResult && state.hasReachedMax && forLoadMore;
-  Stream<SearchStoresState> _mapSearchStoresToState(
+  FutureOr<void> _mapSearchStoresToState(
       {required String query,
       required int offset,
-      required bool forLoadMore}) async* {
+      required bool forLoadMore,
+      required Emitter<SearchStoresState> emit}) async {
     if (!hasReachedMax(state, forLoadMore)) {
       try {
         var locationState = _globalLocationBloc.state as LocationSet;
         List<StoreListModel> stores = [];
         if (state is SearchedStoresResult && forLoadMore) {
-          yield LoadingMoreSearchStoresResult();
+          emit(LoadingMoreSearchStoresResult());
           stores = (state as SearchedStoresResult).searchedStores;
         } else {
-          yield LoadingSearchStoresResult();
+          emit(LoadingSearchStoresResult());
         }
 
         List<StoreListModel> moreStores = await _repository.searchStores(
@@ -64,11 +72,11 @@ class SearchStoresBloc extends Bloc<SearchStoresEvent, SearchStoresState> {
           offset: offset,
           locationModel: locationState.location,
         );
-        yield SearchedStoresResult(
+        emit(SearchedStoresResult(
             searchedStores: stores + moreStores,
-            hasReachedMax: moreStores.length != 10); //Page Limit is 10
+            hasReachedMax: moreStores.length != 10)); //Page Limit is 10
       } catch (e) {
-        yield SearchedStoresError(message: e.toString());
+        emit(SearchedStoresError(message: e.toString()));
       }
     }
   }

@@ -39,6 +39,13 @@ class _OfferSelectionScreenState extends State<OfferSelectionScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _bloc.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: getAppBarWithBackButton(

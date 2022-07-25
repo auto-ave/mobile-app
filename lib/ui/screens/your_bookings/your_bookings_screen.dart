@@ -40,6 +40,13 @@ class _YourBookingsScreenState extends State<YourBookingsScreen> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    // _bookingsBloc.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {

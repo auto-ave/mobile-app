@@ -14,6 +14,7 @@ import 'package:themotorwash/theme_constants.dart';
 import 'package:themotorwash/ui/screens/booking_summary/booking_summary_screen.dart';
 import 'package:themotorwash/ui/screens/offer_selection/offer_selection.dart';
 import 'package:themotorwash/ui/screens/slot_select/slot_select_screen.dart';
+import 'package:themotorwash/ui/screens/store_detail/components/cart_bottom_sheet/cart_hamper_offer_widget.dart';
 import 'package:themotorwash/ui/widgets/common_button.dart';
 import 'package:themotorwash/utils/utils.dart';
 
@@ -39,6 +40,13 @@ class _CartBottomSheetState extends State<CartBottomSheet> {
     _offerApplyBloc = OfferApplyBloc(
         repository: RepositoryProvider.of<Repository>(context),
         globalCartBloc: _globalCartBloc);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _offerApplyBloc.close();
   }
 
   @override
@@ -116,6 +124,7 @@ class _CartBottomSheetState extends State<CartBottomSheet> {
                               )
                             : Column(
                                 mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   Padding(
                                     padding: const EdgeInsets.all(20.0),
@@ -153,148 +162,71 @@ class _CartBottomSheetState extends State<CartBottomSheet> {
                                         timeInterval:
                                             e.timeInterval!.toString());
                                   }).toList()),
+                                  SizeConfig.kverticalMargin24,
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 8, horizontal: 16),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Text(
-                                          'Offers',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        SizedBox(
-                                          height: 8,
-                                        ),
-                                        Row(
-                                          children: [
-                                            FaIcon(
-                                              FontAwesomeIcons.moneyBillAlt,
-                                              color: Colors.green,
-                                            ),
-                                            SizedBox(
-                                              width: 8,
-                                            ),
-                                            Expanded(
-                                                child: cart.offer != null
-                                                    ? Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          Text(
-                                                            '${cart.offer!.code} (applied)',
-                                                            style: SizeConfig
-                                                                .kStyle14Bold
-                                                                .copyWith(
-                                                                    color: Colors
-                                                                        .deepPurple),
-                                                          ),
-                                                          SizeConfig
-                                                              .kHorizontalMargin4,
-                                                          GestureDetector(
-                                                            onTap: () {
-                                                              _offerApplyBloc.add(
-                                                                  RemoveOffer());
-                                                              // mixpanel?.track(
-                                                              // 'Offer Remove');
-                                                            },
-                                                            child: Icon(
-                                                              Icons
-                                                                  .remove_circle_outline,
-                                                              color: Colors.red,
-                                                            ),
-                                                          )
-                                                        ],
-                                                      )
-                                                    : GestureDetector(
-                                                        onTap: () {
-                                                          // mixpanel?.track(
-                                                          // 'View Offers Left');
-                                                          Navigator.pushNamed(
-                                                              context,
-                                                              OfferSelectionScreen
-                                                                  .route,
-                                                              arguments: OfferSelectionScreenArgs(
-                                                                  offerApplyBloc:
-                                                                      _offerApplyBloc));
-                                                        },
-                                                        child: Text(
-                                                            'Select a promo code'))),
-                                            SizeConfig.kHorizontalMargin8,
-                                            GestureDetector(
-                                              onTap: () {
-                                                // mixpanel?.track(
-                                                // 'View Offers Right');
-                                                Navigator.pushNamed(context,
-                                                    OfferSelectionScreen.route,
-                                                    arguments:
-                                                        OfferSelectionScreenArgs(
-                                                            offerApplyBloc:
-                                                                _offerApplyBloc));
-                                              },
-                                              child: Text('View offers',
-                                                  style: SizeConfig
-                                                      .kStyle14PrimaryColor),
-                                            )
-                                          ],
-                                        ),
-                                      ],
+                                    child: Text(
+                                      'Offers and Benifits',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: 24,
-                                  ),
-                                  cart.offer != null
-                                      ? Container(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 16),
-                                          decoration: BoxDecoration(
-                                              color: Color(0xffF3F8FF)),
-                                          child: Column(
-                                            children: [
-                                              DetailsRowWidget(
-                                                  leftText: 'Item total',
-                                                  rightText:
-                                                      cart.subTotal!.rupees(),
-                                                  leftStyle: SizeConfig.kStyle14
-                                                      .copyWith(
-                                                          color: Color(
-                                                              0xff888888)),
-                                                  rightStyle:
-                                                      SizeConfig.kStyle14W500),
-                                              SizeConfig.kverticalMargin8,
-                                              DetailsRowWidget(
-                                                  leftWidget: RichText(
-                                                      text: TextSpan(children: [
-                                                    TextSpan(
-                                                        text:
-                                                            'Promocode discount ',
-                                                        style: SizeConfig
-                                                            .kStyle14
-                                                            .copyWith(
-                                                                color: Color(
-                                                                    0xff888888))),
-                                                    TextSpan(
-                                                        text:
-                                                            '(${cart.offer!.code!})',
-                                                        style: SizeConfig
-                                                            .kStyle14
-                                                            .copyWith(
-                                                                color: Color(
-                                                                    0xff6326C7)))
-                                                  ])),
-                                                  rightText:
-                                                      '- ${cart.discount!.rupees()}',
-                                                  rightStyle: SizeConfig
-                                                      .kStyle14W500
-                                                      .copyWith(
-                                                          color: Color(
-                                                              0xff35B549))),
-                                            ],
-                                          ))
-                                      : SizedBox.shrink(),
+
+                                  // SizedBox(
+                                  //   height: 24,
+                                  // ),
+                                  // cart.offer != null
+                                  //     ? Container(
+                                  //         padding: EdgeInsets.symmetric(
+                                  //             horizontal: 20, vertical: 16),
+                                  //         decoration: BoxDecoration(
+                                  //             color: Color(0xffF3F8FF)),
+                                  //         child: Column(
+                                  //           children: [
+                                  //             DetailsRowWidget(
+                                  //                 leftText: 'Item total',
+                                  //                 rightText:
+                                  //                     cart.subTotal!.rupees(),
+                                  //                 leftStyle: SizeConfig.kStyle14
+                                  //                     .copyWith(
+                                  //                         color: Color(
+                                  //                             0xff888888)),
+                                  //                 rightStyle:
+                                  //                     SizeConfig.kStyle14W500),
+                                  //             SizeConfig.kverticalMargin8,
+                                  //             DetailsRowWidget(
+                                  //                 leftWidget: RichText(
+                                  //                     text: TextSpan(children: [
+                                  //                   TextSpan(
+                                  //                       text:
+                                  //                           'Promocode discount ',
+                                  //                       style: SizeConfig
+                                  //                           .kStyle14
+                                  //                           .copyWith(
+                                  //                               color: Color(
+                                  //                                   0xff888888))),
+                                  //                   TextSpan(
+                                  //                       text:
+                                  //                           '(${cart.offer!.code!})',
+                                  //                       style: SizeConfig
+                                  //                           .kStyle14
+                                  //                           .copyWith(
+                                  //                               color: Color(
+                                  //                                   0xff6326C7)))
+                                  //                 ])),
+                                  //                 rightText:
+                                  //                     '- ${cart.discount!.rupees()}',
+                                  //                 rightStyle: SizeConfig
+                                  //                     .kStyle14W500
+                                  //                     .copyWith(
+                                  //                         color: Color(
+                                  //                             0xff35B549))),
+                                  //           ],
+                                  //         ))
+                                  //     : SizedBox.shrink(),
+                                  CartHamperOfferWidget(),
+                                  SizeConfig.kverticalMargin24,
                                   SafeArea(
                                     child: GestureDetector(
                                       onTap: () {
@@ -550,6 +482,70 @@ class CartItemTile extends StatelessWidget {
     );
   }
 }
+
+// class ViewOffersWidget extends StatelessWidget {
+//   const ViewOffersWidget({Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       children: [
+//         FaIcon(
+//           FontAwesomeIcons.moneyBillAlt,
+//           color: Colors.green,
+//         ),
+//         SizedBox(
+//           width: 8,
+//         ),
+//         Expanded(
+//             child: cart.offer != null
+//                 ? Row(
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: [
+//                       Text(
+//                         '${cart.offer!.code} (applied)',
+//                         style: SizeConfig.kStyle14Bold
+//                             .copyWith(color: Colors.deepPurple),
+//                       ),
+//                       SizeConfig.kHorizontalMargin4,
+//                       GestureDetector(
+//                         onTap: () {
+//                           _offerApplyBloc.add(RemoveOffer());
+//                           // mixpanel?.track(
+//                           // 'Offer Remove');
+//                         },
+//                         child: Icon(
+//                           Icons.remove_circle_outline,
+//                           color: Colors.red,
+//                         ),
+//                       )
+//                     ],
+//                   )
+//                 : GestureDetector(
+//                     onTap: () {
+//                       // mixpanel?.track(
+//                       // 'View Offers Left');
+//                       Navigator.pushNamed(context, OfferSelectionScreen.route,
+//                           arguments: OfferSelectionScreenArgs(
+//                               offerApplyBloc: _offerApplyBloc));
+//                     },
+//                     child: Text('Select a promo code'))),
+//         SizeConfig.kHorizontalMargin8,
+//         GestureDetector(
+//           onTap: () {
+//             // mixpanel?.track(
+//             // 'View Offers Right');
+//             Navigator.pushNamed(context, OfferSelectionScreen.route,
+//                 arguments:
+//                     OfferSelectionScreenArgs(offerApplyBloc: _offerApplyBloc));
+//           },
+//           child: Text('View offers', style: SizeConfig.kStyle14PrimaryColor),
+//         )
+//       ],
+//     );
+//   }
+// }
+
 //  if (state is CartItemAdded ||
 //                   state is CartItemDeleted ||
 //                   state is CartLoaded ||

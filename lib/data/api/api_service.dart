@@ -7,6 +7,7 @@ import 'package:logger/logger.dart';
 import 'package:themotorwash/data/api/api_constants.dart';
 import 'package:themotorwash/data/api/api_methods.dart';
 import 'package:themotorwash/data/models/auth_tokens.dart';
+import 'package:themotorwash/data/models/direct_booking_response.dart';
 import 'package:themotorwash/data/models/initiate_razorpay_payment.dart';
 import 'package:themotorwash/data/models/multi_day_slot_detail.dart';
 import 'package:themotorwash/data/models/booking_detail.dart';
@@ -643,5 +644,31 @@ class ApiService implements ApiMethods {
         .map<StoreListEntity>((e) => StoreListEntity.fromJson(e))
         .toList();
     return stores;
+  }
+
+  @override
+  Future<DirectBookingResponseEntity> directBookSlot(
+      {required String date,
+      required int? bay,
+      required String? slotStart,
+      required String? slotEnd}) async {
+    Dio client = _apiConstants.dioClient();
+    String url = _apiConstants.postDirectBookSlotEndpoint();
+    print({
+      'date': date,
+      'bay': bay,
+      'slot_start': slotStart,
+      'slot_end': slotEnd
+    }.toString());
+    Response res = await client.post(url, data: {
+      'date': date,
+      'bay': bay,
+      'slot_start': slotStart,
+      'slot_end': slotEnd
+    });
+    dynamic data = jsonDecode(res.data);
+    DirectBookingResponseEntity entity =
+        DirectBookingResponseEntity.fromJson(data);
+    return entity;
   }
 }

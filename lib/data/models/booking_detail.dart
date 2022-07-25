@@ -176,6 +176,8 @@ BookingStatus getBookingStatusFromCode(String code) {
       return BookingStatus.cancellationRequestRejected;
     case 'CANCELLATION_REQUEST_SUBMITTED':
       return BookingStatus.cancellationRequestSubmitted;
+    case 'SUCCESS_WITHOUT_PAYMENT':
+      return BookingStatus.successWithoutPayment;
 
     default:
       return BookingStatus.notDefined;
@@ -184,7 +186,7 @@ BookingStatus getBookingStatusFromCode(String code) {
 
 enum BookingStatus {
   initiated,
-
+  successWithoutPayment,
   paymentSuccess,
   paymentFailed,
   notAttended,

@@ -23,28 +23,45 @@ class CartFunctionBloc extends Bloc<CartFunctionEvent, CartFunctionState> {
       : _repository = repository,
         _orderReviewBloc = orderReviewBloc,
         _globalCartBloc = globalCartBloc,
-        super(CartFunctionUninitialized());
-
-  @override
-  Stream<CartFunctionState> mapEventToState(
-    CartFunctionEvent event,
-  ) async* {
-    if (event is AddItemToCart) {
-      yield* _mapAddItemToCartToState(
-          itemId: event.itemId, vehicleModel: event.vehicleModel);
-    } else if (event is DeleteItemFromCart) {
-      yield* _mapDeleteItemFromCart(itemId: event.itemId);
-    } else if (event is ClearCart) {
-      yield* _mapClearCartToState();
-    } else if (event is GetCart) {
-      yield* _mapGetCartToState();
-    } else if (event is ClearLocalCart) {
-      yield* _mapClearLocalCartToState();
-    }
+        super(CartFunctionUninitialized()) {
+    on<CartFunctionEvent>((event, emit) async {
+      if (event is AddItemToCart) {
+        await _mapAddItemToCartToState(
+            itemId: event.itemId, vehicleModel: event.vehicleModel, emit: emit);
+      } else if (event is DeleteItemFromCart) {
+        await _mapDeleteItemFromCart(itemId: event.itemId, emit: emit);
+      } else if (event is ClearCart) {
+        await _mapClearCartToState(emit: emit);
+      } else if (event is GetCart) {
+        await _mapGetCartToState(emit: emit);
+      } else if (event is ClearLocalCart) {
+        await _mapClearLocalCartToState(emit: emit);
+      }
+    });
   }
 
-  Stream<CartFunctionState> _mapAddItemToCartToState(
-      {required int itemId, required String vehicleModel}) async* {
+  // @override
+  // Stream<CartFunctionState> mapEventToState(
+  //   CartFunctionEvent event,
+  // ) async* {
+  //   if (event is AddItemToCart) {
+  //     yield* _mapAddItemToCartToState(
+  //         itemId: event.itemId, vehicleModel: event.vehicleModel);
+  //   } else if (event is DeleteItemFromCart) {
+  //     yield* _mapDeleteItemFromCart(itemId: event.itemId);
+  //   } else if (event is ClearCart) {
+  //     yield* _mapClearCartToState();
+  //   } else if (event is GetCart) {
+  //     yield* _mapGetCartToState();
+  //   } else if (event is ClearLocalCart) {
+  //     yield* _mapClearLocalCartToState();
+  //   }
+  // }
+
+  FutureOr<void> _mapAddItemToCartToState(
+      {required int itemId,
+      required String vehicleModel,
+      required Emitter<CartFunctionState> emit}) async {
     try {
       FirebaseAnalytics.instance.logAddToCart(items: [
         AnalyticsEventItem(
@@ -62,46 +79,47 @@ class CartFunctionBloc extends Bloc<CartFunctionEvent, CartFunctionState> {
         previousItems.add(itemId);
         print(previousItems.toString() + "helolo" + "add");
 
-        yield CartFunctionLoading(itemId: previousItems);
+        emit(CartFunctionLoading(itemId: previousItems));
       } else {
         print("loladdhelolo");
 
-        yield CartFunctionLoading(itemId: [itemId]);
+        emit(CartFunctionLoading(itemId: [itemId]));
       }
 
       CartModel cart = await _repository.postAddItemToCart(
           itemId: itemId, vehicleModel: vehicleModel);
       _orderReviewBloc.add(SetCart(cart: cart));
       _globalCartBloc.add(NewCart(cart: cart));
-      yield CartItemAdded(cart: cart);
+      emit(CartItemAdded(cart: cart));
     } catch (e) {
-      yield CartStateError(message: e.toString());
+      emit(CartStateError(message: e.toString()));
     }
   }
 
-  Stream<CartFunctionState> _mapDeleteItemFromCart(
-      {required int itemId}) async* {
+  FutureOr<void> _mapDeleteItemFromCart(
+      {required int itemId, required Emitter<CartFunctionState> emit}) async {
     try {
       if (state is CartFunctionLoading) {
         var previousItems = (state as CartFunctionLoading).itemId;
         previousItems.add(itemId);
         // print(previousItems.toString() + "helolo");
-        yield CartFunctionLoading(itemId: previousItems);
+        emit(CartFunctionLoading(itemId: previousItems));
       } else {
         // print("lolhelolo");
-        yield CartFunctionLoading(itemId: [itemId]);
+        emit(CartFunctionLoading(itemId: [itemId]));
       }
       CartModel cart = await _repository.postDeleteItemFromCart(itemId: itemId);
       _globalCartBloc.add(NewCart(cart: cart));
       _orderReviewBloc.add(SetCart(cart: cart));
 
-      yield CartItemDeleted(cart: cart);
+      emit(CartItemDeleted(cart: cart));
     } catch (e) {
-      yield CartStateError(message: e.toString());
+      emit(CartStateError(message: e.toString()));
     }
   }
 
-  Stream<CartFunctionState> _mapClearCartToState() async* {
+  FutureOr<void> _mapClearCartToState(
+      {required Emitter<CartFunctionState> emit}) async {
     // try {
     //   CartModel cart = await _repository.postAddItemToCart(itemId: itemId);
     //   yield CartItemAdded(cart: cart);
@@ -110,23 +128,25 @@ class CartFunctionBloc extends Bloc<CartFunctionEvent, CartFunctionState> {
     // }
   }
 
-  Stream<CartFunctionState> _mapGetCartToState() async* {
+  FutureOr<void> _mapGetCartToState(
+      {required Emitter<CartFunctionState> emit}) async {
     try {
-      yield CartLoading();
+      emit(CartLoading());
 
       CartModel cart = await _repository.getCart();
 
       _orderReviewBloc.add(SetCart(cart: cart));
       _globalCartBloc.add(NewCart(cart: cart));
 
-      yield CartLoaded(cart: cart);
+      emit(CartLoaded(cart: cart));
     } catch (e) {
-      yield CartStateError(message: e.toString());
+      emit(CartStateError(message: e.toString()));
     }
   }
 
-  Stream<CartFunctionState> _mapClearLocalCartToState() async* {
-    yield CartFunctionUninitialized();
+  FutureOr<void> _mapClearLocalCartToState(
+      {required Emitter<CartFunctionState> emit}) async {
+    emit(CartFunctionUninitialized());
     _globalCartBloc.add(ClearGlobalLocalCart());
   }
 }

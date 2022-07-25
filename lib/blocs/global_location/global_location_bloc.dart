@@ -16,24 +16,39 @@ class GlobalLocationBloc
   final Repository _repository;
   GlobalLocationBloc({required Repository repository})
       : _repository = repository,
-        super(LocationUninitialized());
-
-  @override
-  Stream<GlobalLocationState> mapEventToState(
-    GlobalLocationEvent event,
-  ) async* {
-    if (event is GetCurrentUserLocation) {
-      yield* _mapGetCurrentUserLocationToState();
-    } else if (event is SetUserLocation) {
-      yield* _mapSetUserLocationToState(location: event.location);
-    } else if (event is SkipUserLocation) {
-      yield* _mapSkipUserLocationToState();
-    }
+        super(LocationUninitialized()) {
+    on<GlobalLocationEvent>((event, emit) async {
+      if (event is GetCurrentUserLocation) {
+        await _mapGetCurrentUserLocationToState(emit: emit);
+      } else if (event is SetUserLocation) {
+        await _mapSetUserLocationToState(location: event.location, emit: emit);
+      } else if (event is SkipUserLocation) {
+        await _mapSkipUserLocationToState(emit: emit);
+      }
+    });
+    // on<SetUserLocation>((event, emit) =>
+    //     _mapSetUserLocationToState(location: event.location, emit: emit));
+    // on<SkipUserLocation>(
+    //     (event, emit) => _mapSkipUserLocationToState(emit: emit));
   }
 
-  Stream<GlobalLocationState> _mapGetCurrentUserLocationToState() async* {
+  // @override
+  // Stream<GlobalLocationState> mapEventToState(
+  //   GlobalLocationEvent event,
+  // ) async* {
+  // if (event is GetCurrentUserLocation) {
+  //   yield* _mapGetCurrentUserLocationToState();
+  // } else if (event is SetUserLocation) {
+  //   yield* _mapSetUserLocationToState(location: event.location);
+  // } else if (event is SkipUserLocation) {
+  //   yield* _mapSkipUserLocationToState();
+  // }
+  // }
+
+  FutureOr<void> _mapGetCurrentUserLocationToState(
+      {required Emitter<GlobalLocationState> emit}) async {
     try {
-      yield RetrievingLocation();
+      emit(RetrievingLocation());
       bool serviceEnabled;
       LocationPermission permission;
 
@@ -43,56 +58,58 @@ class GlobalLocationBloc
         //   // Location services are not enabled don't continue
         //   // accessing the position and request users of the
         //   // App to enable the location services.
-        yield LocationServiceNotEnabledError();
+        emit(LocationServiceNotEnabledError());
       } else {
         permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied) {
-          yield LocationPermissionError(locationPermission: permission);
+          emit(LocationPermissionError(locationPermission: permission));
         } else if (permission == LocationPermission.deniedForever) {
-          yield LocationPermissionError(locationPermission: permission);
+          emit(LocationPermissionError(locationPermission: permission));
         }
 
         // When we reach here, permissions are granted and we can
         // continue accessing the position of the device.
         // Will throw an expection if permission is denied.
-        yield RetrievingLocation();
+        emit(RetrievingLocation());
         List responses = await Future.wait(
             [Geolocator.getCurrentPosition(), _repository.getListOfCities()]);
         Position location = responses[0];
         List<City> cities = responses[1];
 
         City city = cities[0];
-        yield LocationSet(
+        emit(LocationSet(
             location: LocationModel(
                 cityCode: city.code,
                 cityName: city.name,
                 lat: location.latitude,
-                long: location.longitude));
+                long: location.longitude)));
       }
     } catch (e) {
-      yield GlobalLocationError(message: e.toString());
+      emit(GlobalLocationError(message: e.toString()));
     }
   }
 
-  Stream<GlobalLocationState> _mapSetUserLocationToState(
-      {required LocationModel location}) async* {
-    yield LocationSet(location: location);
+  FutureOr<void> _mapSetUserLocationToState(
+      {required LocationModel location,
+      required Emitter<GlobalLocationState> emit}) async {
+    emit(LocationSet(location: location));
   }
 
-  Stream<GlobalLocationState> _mapSkipUserLocationToState() async* {
+  FutureOr<void> _mapSkipUserLocationToState(
+      {required Emitter<GlobalLocationState> emit}) async {
     try {
-      yield RetrievingLocation();
+      emit(RetrievingLocation());
       List<City> cities = await _repository.getListOfCities();
       City city = cities[0];
 
-      yield LocationSet(
+      emit(LocationSet(
           location: LocationModel(
               cityCode: city.code,
               cityName: city.name,
               lat: double.parse(city.latitude),
-              long: double.parse(city.longitude)));
+              long: double.parse(city.longitude))));
     } catch (e) {
-      yield GlobalLocationError(message: e.toString() + " SKIP NOT WORKING");
+      emit(GlobalLocationError(message: e.toString() + " SKIP NOT WORKING"));
     }
   }
 }
