@@ -637,17 +637,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return
-        //  UpgradeAlert(
-        //   debugLogging: true,
-        //   canDismissDialog: false,
-        //   countryCode: 'in',
-
-        //   // durationToAlertAgain: Duration(seconds: 1),
-        //   showIgnore: false,
-        //   showLater: false,
-        //   // debugAlwaysUpgrade: true,
-        //   // debugDisplayOnce: false,
-        //   child:
         BlocListener<GlobalAuthBloc, GlobalAuthState>(
       bloc: widget.globalAuthBloc,
       listener: (context, state) {
@@ -657,12 +646,7 @@ class _MainScreenState extends State<MainScreen> {
           widget.cartFunctionBloc.add(GetCart());
         }
       },
-      // listenWhen: (previous, current) {
-      //   if (previous is Unauthenticated && current is Unauthenticated) {
-      //     return false;
-      //   }
-      //   return true;
-      // },
+
       child: FutureBuilder<AuthTokensModel>(
           future: LocalDataService().getAuthTokens(),
           builder: (ctx, snapshot) {
